@@ -30,7 +30,6 @@ type CalendarWeeks = CalendarWeek[]
 
 interface CalendarProps {
   selectedDate: Date | null
-  blockedDates: Date[]
   onDateSelected: (date: Date) => void
 }
 
