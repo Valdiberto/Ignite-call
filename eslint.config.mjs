@@ -13,7 +13,6 @@ const compat = new FlatCompat({
 })
 
 export default defineConfig([
- 
   {
     ignores: ['**/*.d.ts'],
     extends: compat.extends(
