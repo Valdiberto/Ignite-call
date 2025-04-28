@@ -1,13 +1,12 @@
 {
-    "extends": [
-        "@rocketseat/eslint-config/react",
-        "next/core-web-vitals"
-        
-    ],
-    "ignorePatterns":["**/*.d.ts"],
-    "rules": {
+  "extends": [
+    "@rocketseat/eslint-config/react",
+    "next/core-web-vitals",
+    "plugin:prettier/recommended"
+  ],
+  "ignorePatterns": ["**/*.d.ts"],
+  "rules": {
     "camelcase": ["off"],
     "@typescript-eslint/camelcase": ["off"]
   }
-      
 }
