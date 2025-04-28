@@ -52,7 +52,11 @@ export function Calendar({ onDateSelected }: CalendarProps) {
     setCurrentDate(previousMonthDate)
   }
 
-  const shortWeekDays = getWeekDays({ short: true })
+  const shortWeekDays: string[] = getWeekDays({ short: true })
+
+  if (!shortWeekDays || shortWeekDays.length === 0) {
+    throw new Error('No weekdays were returned.')
+  }
 
   const currentMonth = currentDate.format('MMMM')
   const currentYear = currentDate.format('YYYY')
