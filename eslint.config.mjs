@@ -14,6 +14,14 @@ const compat = new FlatCompat({
 
 export default defineConfig([
   {
+    files: ['**/*.d.ts'],
+    rules: {
+      // Desativa todas as regras
+      '@typescript-eslint/no-unused-vars': 'off',
+      // outras regras que quiser desligar para d.ts
+    },
+  },
+  {
     extends: compat.extends(
       '@rocketseat/eslint-config/react',
       'next/core-web-vitals',

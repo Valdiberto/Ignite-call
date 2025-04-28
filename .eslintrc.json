@@ -4,10 +4,12 @@
         "next/core-web-vitals"
         
     ],
+    "ignorePatterns":["**/*.d.ts"],
     "rules": {
         "camelcase": "off",
         "@typescript-eslint/camelcase": [
           "off"
         ]
       }
+      
 }
