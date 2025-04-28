@@ -23,6 +23,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { convertTimeStringToMinutes } from '@/utils/convert-time-string-to-minuts'
 import { api } from '@/lib/axios'
 import { useRouter } from 'next/router'
+import { NextSeo } from 'next-seo'
 
 const timeIntervalsFormSchema = z.object({
   intervals: z
@@ -109,6 +110,7 @@ export default function TimeIntervals() {
 
   return (
     <>
+      <NextSeo title="Selecione sua disponibilidade | Ignite Call" noindex />
       <Container>
         <Header>
           <Heading as="strong">Quase lá</Heading>
