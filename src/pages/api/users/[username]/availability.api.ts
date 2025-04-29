@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import dayjs from 'dayjs'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '../../../../lib/prisma'
 
 export default async function handler(
   req: NextApiRequest,
@@ -72,7 +72,7 @@ export default async function handler(
 
   const availableTimes = possibleTimes.filter((time) => {
     const isTimeBlocked = blockedTimes.some(
-      (blockedTimes) => blockedTimes.date.getHours() === time,
+      (blockedTime) => blockedTime.date.getHours() === time,
     )
 
     const isTimeInPast = referenceDate.set('hour', time).isBefore(new Date())

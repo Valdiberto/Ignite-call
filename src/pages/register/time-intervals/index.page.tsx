@@ -6,26 +6,27 @@ import {
   Text,
   TextInput,
 } from '@ignite-ui/react'
+import { NextSeo } from 'next-seo'
+import { useRouter } from 'next/router'
+import { ArrowRight } from 'phosphor-react'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { api } from '../../../lib/axios'
+import { convertTimeStringToMinutes } from '../../../utils/convert-time-string-to-minuts'
+import { getWeekDays } from '../../../utils/get-week-days'
 import { Container, Header } from '../styles'
+
 import {
   FormError,
   IntervalBox,
+  IntervalContainer,
   IntervalDay,
   IntervalInputs,
   IntervalItem,
-  IntervalsContainer,
 } from './styles'
-import { ArrowRight } from '@phosphor-icons/react'
-import { Controller, useFieldArray, useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { getWeekDays } from '@/utils/get-week-days'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { convertTimeStringToMinutes } from '@/utils/convert-time-string-to-minuts'
-import { api } from '@/lib/axios'
-import { useRouter } from 'next/router'
-import { NextSeo } from 'next-seo'
 
-const timeIntervalsFormSchema = z.object({
+const intervalsInputSchema = z.object({
   intervals: z
     .array(
       z.object({
@@ -35,50 +36,47 @@ const timeIntervalsFormSchema = z.object({
         endTime: z.string(),
       }),
     )
-    .length(7)
-    .transform((intervals) => intervals.filter((interval) => interval.enabled))
-    .refine((intervals) => intervals.length > 0, {
-      message: 'Você precisa selecionar pelo menos um dia da semana!',
-    })
-    .transform((intervals) => {
-      return intervals.map((interval) => {
-        return {
-          weekDay: interval.weekDay,
-          startTimeInMinutes: convertTimeStringToMinutes(interval.startTime),
-          endTimeInMinutes: convertTimeStringToMinutes(interval.endTime),
-        }
-      })
-    })
-    .refine(
-      (intervals) => {
-        return intervals.every(
-          (interval) =>
-            interval.endTimeInMinutes - 60 >= interval.startTimeInMinutes,
-        )
-      },
-      {
-        message:
-          'o horário de término deve ser pelo menos 1h distante do início.',
-      },
-    ),
+    .length(7),
 })
 
-type TimeIntervalsFormInput = z.input<typeof timeIntervalsFormSchema>
-type TimeIntervalsFormOutput = z.output<typeof timeIntervalsFormSchema>
+const timeIntervalsFormSchema = intervalsInputSchema
+  .transform((data) => {
+    const intervals = data.intervals.filter((interval) => interval.enabled)
+
+    return {
+      intervals: intervals.map((interval) => ({
+        weekDay: interval.weekDay,
+        startTimeInMinutes: convertTimeStringToMinutes(interval.startTime),
+        endTimeInMinutes: convertTimeStringToMinutes(interval.endTime),
+      })),
+    }
+  })
+  .refine(
+    (data) => {
+      return data.intervals.every(
+        (interval) =>
+          interval.endTimeInMinutes - 60 >= interval.startTimeInMinutes,
+      )
+    },
+    {
+      message:
+        'O horário de término deve ser pelo menos 1h distante do início.',
+      path: ['intervals'],
+    },
+  )
+
+type TimeIntervalsFormInput = z.input<typeof intervalsInputSchema>
+// type TimeIntervalsFormOutput = z.output<typeof timeIntervalsFormSchema>
 
 export default function TimeIntervals() {
   const {
     register,
+    handleSubmit,
     control,
     watch,
-    handleSubmit,
     formState: { isSubmitting, errors },
-  } = useForm<
-    TimeIntervalsFormInput,
-    TimeIntervalsFormInput,
-    TimeIntervalsFormOutput
-  >({
-    resolver: zodResolver(timeIntervalsFormSchema),
+  } = useForm<TimeIntervalsFormInput>({
+    resolver: zodResolver(intervalsInputSchema),
     defaultValues: {
       intervals: [
         { weekDay: 0, enabled: false, startTime: '08:00', endTime: '18:00' },
@@ -103,10 +101,11 @@ export default function TimeIntervals() {
 
   const intervals = watch('intervals')
 
-  async function handleSetTimeIntervals(data: TimeIntervalsFormOutput) {
-    const { intervals } = data
+  async function handleSetTimeIntervals(data: TimeIntervalsFormInput) {
+    const transformed = timeIntervalsFormSchema.parse(data)
+
     await api.post('/users/time-intervals', {
-      intervals,
+      intervals: transformed.intervals,
     })
 
     await router.push('/register/update-profile')
@@ -115,11 +114,12 @@ export default function TimeIntervals() {
   return (
     <>
       <NextSeo title="Selecione sua disponibilidade | Ignite Call" noindex />
+
       <Container>
         <Header>
           <Heading as="strong">Quase lá</Heading>
           <Text>
-            Defina o intervalo de horários que você está disponível em cada dia
+            Defina o intervalo de horário que você está disponível em cada dia
             da semana.
           </Text>
 
@@ -127,7 +127,7 @@ export default function TimeIntervals() {
         </Header>
 
         <IntervalBox as="form" onSubmit={handleSubmit(handleSetTimeIntervals)}>
-          <IntervalsContainer>
+          <IntervalContainer>
             {fields.map((field, index) => {
               return (
                 <IntervalItem key={field.id}>
@@ -138,9 +138,9 @@ export default function TimeIntervals() {
                       render={({ field }) => {
                         return (
                           <Checkbox
-                            onCheckedChange={(checked) => {
+                            onCheckedChange={(checked) =>
                               field.onChange(checked === true)
-                            }}
+                            }
                             checked={field.value}
                           />
                         )
@@ -173,11 +173,12 @@ export default function TimeIntervals() {
                 </IntervalItem>
               )
             })}
-          </IntervalsContainer>
+          </IntervalContainer>
 
           {errors.intervals && (
-            <FormError size="sm">{errors.intervals.root?.message}</FormError>
+            <FormError size="sm">{errors.intervals.message}</FormError>
           )}
+
           <Button type="submit" disabled={isSubmitting}>
             Próximo passo
             <ArrowRight />
